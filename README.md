@@ -135,6 +135,14 @@ Password: 123456
 
 ---
 
+## 🔗 Live Demo (Optional)
+
+* **Live Link:** [https://snap-crm.vercel.app/](https://snap-crm.vercel.app/)
+
+***
+
+---
+
 ## ✅ Bonus Features
 
 - Role-based access control with middleware (admin vs. user).  

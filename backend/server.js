@@ -6,6 +6,7 @@ const connectDB = require('./config/db');
 
 const authRoutes = require('./routes/authRoutes');
 const customerRoutes = require('./routes/customerRoutes');
+const leadRoutes = require('./routes/leadRoutes');
 
 
 const app = express();
@@ -27,6 +28,9 @@ app.use('/api/auth', authRoutes);
 
 // Customer 
 app.use('/api/customers', customerRoutes);
+
+// Leads 
+app.use("/api/leads", leadRoutes);
 
 
 

@@ -15,7 +15,7 @@ app.use(express.json());
 
 dotenv.config();
 
-const PORT = process.env.PORT || 3000;
+// const PORT = process.env.PORT || 3000;
 
 connectDB();
 
@@ -34,8 +34,8 @@ app.use("/api/leads", leadRoutes);
 
 
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+// app.listen(PORT, () => {
+//     console.log(`Server is running on http://localhost:${PORT}`);
+// });
 
 module.exports = app;

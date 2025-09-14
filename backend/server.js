@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
 const authRoutes = require('./routes/authRoutes');
+const customerRoutes = require('./routes/customerRoutes');
 
 
 const app = express();
@@ -24,6 +25,8 @@ app.get("/", (req, res) => {
 // Auth 
 app.use('/api/auth', authRoutes);
 
+// Customer 
+app.use('/api/customers', customerRoutes);
 
 
 

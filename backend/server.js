@@ -4,6 +4,8 @@ const dotenv = require("dotenv");
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
+const authRoutes = require('./routes/authRoutes');
+
 
 const app = express();
 app.use(cors());
@@ -18,6 +20,10 @@ connectDB();
 app.get("/", (req, res) => {
     res.send("Welcome to api");
 });
+
+// Auth 
+app.use('/api/auth', authRoutes);
+
 
 
 

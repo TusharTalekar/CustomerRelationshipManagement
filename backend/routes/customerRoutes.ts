@@ -1,26 +1,32 @@
-const express = require("express");
-const Customer = require("../models/Customer");
-const { protect, admin } = require("../middlewares/authMiddleware");
+import express, { Response } from "express";
+import Customer from "../models/Customer";
+import { protect, admin, RequestWithUser } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 
 // @ route POST /api/customers
 // @ desc create a new customer 
 // @ access Private
-router.post("/", protect, async (req, res) => {
+router.post("/", protect as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
         const { name, email, phone, company } = req.body;
+        
+        if (!req.user) {
+            res.status(401).json({ message: "Not authorized" });
+            return;
+        }
+
         const newCustomer = new Customer({
             name,
             email,
             phone,
             company,
-            ownerId: req.user.id,
+            ownerId: req.user._id,
         });
 
         const customer = await newCustomer.save();
         res.status(201).json(customer);
-    } catch (err) {
+    } catch (err: any) {
         console.error(err.message);
         res.status(500).send("Server error");
     }
@@ -29,11 +35,16 @@ router.post("/", protect, async (req, res) => {
 // @ route GET /api/customers
 // @ desc get all customers for the logged-in user, or all for admin, with search functionality
 // @ access Private
-router.get("/", protect, async (req, res) => {
+router.get("/", protect as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
-        const { query } = req.query;
+        const query = req.query.query as string | undefined;
         let customers;
         
+        if (!req.user) {
+            res.status(401).json({ message: "Not authorized" });
+            return;
+        }
+
         const searchCondition = query ? {
             $or: [
                 { name: { $regex: query, $options: 'i' } },
@@ -46,12 +57,12 @@ router.get("/", protect, async (req, res) => {
             customers = await Customer.find(searchCondition);
         } else {
             customers = await Customer.find({
-                ownerId: req.user.id,
+                ownerId: req.user._id,
                 ...searchCondition
             });
         }
         res.json(customers);
-    } catch (err) {
+    } catch (err: any) {
         console.error(err.message);
         res.status(500).send("Server error");
     }
@@ -60,21 +71,28 @@ router.get("/", protect, async (req, res) => {
 // @ route GET /api/customers/:id
 // @ desc get a single customer by id
 // @ access Private
-router.get("/:id", protect, async (req, res) => {
+router.get("/:id", protect as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
         const customer = await Customer.findById(req.params.id);
 
+        if (!req.user) {
+            res.status(401).json({ message: "Not authorized" });
+            return;
+        }
+
         if (!customer) {
-            return res.status(404).json({ message: "Customer not found" });
+            res.status(404).json({ message: "Customer not found" });
+            return;
         }
 
         // Check if the logged-in user is the owner OR is an admin
-        if (customer.ownerId.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(403).json({ message: "Not authorized to view this customer" });
+        if (customer.ownerId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            res.status(403).json({ message: "Not authorized to view this customer" });
+            return;
         }
 
         res.json(customer);
-    } catch (err) {
+    } catch (err: any) {
         console.error(err.message);
         res.status(500).send("Server error");
     }
@@ -83,17 +101,24 @@ router.get("/:id", protect, async (req, res) => {
 // @ route PUT /api/customers/:id
 // @ desc update a customer by id
 // @ access Private
-router.put("/:id", protect, async (req, res) => {
+router.put("/:id", protect as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
         const customer = await Customer.findById(req.params.id);
 
+        if (!req.user) {
+            res.status(401).json({ message: "Not authorized" });
+            return;
+        }
+
         if (!customer) {
-            return res.status(404).json({ message: "Customer not found" });
+            res.status(404).json({ message: "Customer not found" });
+            return;
         }
 
         // Check if the logged-in user is the owner OR is an admin
-        if (customer.ownerId.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(403).json({ message: "Not authorized to update this customer" });
+        if (customer.ownerId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            res.status(403).json({ message: "Not authorized to update this customer" });
+            return;
         }
 
         const updatedCustomer = await Customer.findByIdAndUpdate(
@@ -102,7 +127,7 @@ router.put("/:id", protect, async (req, res) => {
             { new: true, runValidators: true }
         );
         res.json(updatedCustomer);
-    } catch (err) {
+    } catch (err: any) {
         console.error(err.message);
         res.status(500).send("Server error");
     }
@@ -111,20 +136,21 @@ router.put("/:id", protect, async (req, res) => {
 // @ route DELETE /api/customers/:id
 // @ desc delete a customer by id (Admin Only)
 // @ access Private
-router.delete("/:id", protect, admin, async (req, res) => {
+router.delete("/:id", [protect as express.RequestHandler, admin as express.RequestHandler], async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
         const customer = await Customer.findById(req.params.id);
 
         if (!customer) {
-            return res.status(404).json({ message: "Customer not found" });
+            res.status(404).json({ message: "Customer not found" });
+            return;
         }
 
         await customer.deleteOne();
         res.json({ message: "Customer removed" });
-    } catch (err) {
+    } catch (err: any) {
         console.error(err.message);
         res.status(500).send("Server error");
     }
 });
 
-module.exports = router;
+export default router;

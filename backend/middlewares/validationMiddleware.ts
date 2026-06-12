@@ -1,6 +1,8 @@
-const Joi = require('joi');
+import { Request, Response, NextFunction } from 'express';
+import Joi from 'joi';
 
-const validate = (schema, property) => (req, res, next) => {
+const validate = (schema: Joi.ObjectSchema, property: 'body' | 'query' | 'params') => 
+  (req: Request, res: Response, next: NextFunction): void => {
     const { error } = schema.validate(req[property]);
     if (error) {
         const { details } = error;
@@ -12,4 +14,4 @@ const validate = (schema, property) => (req, res, next) => {
     }
 };
 
-module.exports = validate;
+export default validate;

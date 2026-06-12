@@ -1,6 +1,13 @@
 import React from "react";
+import { Customer } from "../../types";
 
-const CustomerModal = ({
+interface CustomerModalProps {
+  currentCustomer: Customer | null;
+  handleCustomerSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  closeCustomerModal: () => void;
+}
+
+const CustomerModal: React.FC<CustomerModalProps> = ({
   currentCustomer,
   handleCustomerSubmit,
   closeCustomerModal,

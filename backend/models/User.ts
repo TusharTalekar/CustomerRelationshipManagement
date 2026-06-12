@@ -1,7 +1,21 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs")
+import mongoose, { Schema, Document } from 'mongoose';
+import bcrypt from 'bcryptjs';
 
-const userSchema = new mongoose.Schema(
+export interface IUser {
+  name: string;
+  email: string;
+  password: string;
+  role: 'user' | 'admin';
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface IUserDocument extends IUser, Document {
+  _id: mongoose.Types.ObjectId;
+  matchPassword(enteredPassword: string): Promise<boolean>;
+}
+
+const userSchema = new Schema<IUserDocument>(
   {
     name: {
       type: String,
@@ -29,19 +43,18 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-
 // Password hash middleware 
-userSchema.pre("save", async function (next) {
+userSchema.pre<IUserDocument>("save", async function (next) {
   if (!this.isModified("password")) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 
-
 // Match user entered password with hashed password 
-userSchema.methods.matchPassword = async function (enteredPassword) {
+userSchema.methods.matchPassword = async function (enteredPassword: string): Promise<boolean> {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-module.exports = mongoose.model("User", userSchema);
+const User = mongoose.model<IUserDocument>("User", userSchema);
+export default User;

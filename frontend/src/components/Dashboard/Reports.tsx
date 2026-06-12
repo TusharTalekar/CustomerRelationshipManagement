@@ -7,9 +7,14 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { Lead } from "../../types";
 
-const Reports = ({ leads }) => {
-  const statusCounts = leads.reduce((acc, lead) => {
+interface ReportsProps {
+  leads: Lead[];
+}
+
+const Reports: React.FC<ReportsProps> = ({ leads }) => {
+  const statusCounts = leads.reduce<Record<string, number>>((acc, lead) => {
     acc[lead.status] = (acc[lead.status] || 0) + 1;
     return acc;
   }, {});
@@ -37,7 +42,7 @@ const Reports = ({ leads }) => {
               cy="50%"
               outerRadius={100}
               fill="#8884d8"
-              label={({ name, percent }) =>
+              label={({ name, percent }: { name: string; percent: number }) =>
                 `${name}: ${(percent * 100).toFixed(0)}%`
               }
             >

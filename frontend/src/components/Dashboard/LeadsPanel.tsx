@@ -1,6 +1,16 @@
 import React from "react";
+import { Lead, Customer, LeadStatus } from "../../types";
 
-const LeadsPanel = ({
+interface LeadsPanelProps {
+  leads: Lead[];
+  customers: Customer[];
+  filterStatus: LeadStatus | 'All';
+  setFilterStatus: (status: LeadStatus | 'All') => void;
+  openLeadModal: (lead?: Lead) => void;
+  deleteLead: (id: string) => void;
+}
+
+const LeadsPanel: React.FC<LeadsPanelProps> = ({
   leads,
   customers,
   filterStatus,
@@ -20,7 +30,7 @@ const LeadsPanel = ({
         <div className="flex items-center space-x-2">
           <select
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+            onChange={(e) => setFilterStatus(e.target.value as LeadStatus | 'All')}
             className="w-full p-3 rounded-lg border border-gray-300 bg-gray-50 text-base"
           >
             <option value="All">All Statuses</option>
@@ -58,7 +68,10 @@ const LeadsPanel = ({
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredLeads.map((lead) => {
-              const customer = customers.find((c) => c._id === lead.customerId);
+              const targetId = typeof lead.customerId === 'object' && lead.customerId 
+                ? lead.customerId._id 
+                : lead.customerId;
+              const customer = customers.find((c) => c._id === targetId);
               return (
                 <tr key={lead._id}>
                   <td className="px-6 py-4 whitespace-nowrap">{lead.title}</td>

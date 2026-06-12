@@ -1,6 +1,16 @@
 import React from "react";
 
-const Header = ({ isLoggedIn, handleLogout, user }) => {
+interface HeaderProps {
+  isLoggedIn: boolean;
+  handleLogout: () => void;
+  user: {
+    name: string;
+    email: string;
+    role: string;
+  } | null;
+}
+
+const Header: React.FC<HeaderProps> = ({ isLoggedIn, handleLogout, user }) => {
   return (
     <header className="bg-white shadow-md">
       <div className="container mx-auto flex items-center justify-between py-4 px-4">

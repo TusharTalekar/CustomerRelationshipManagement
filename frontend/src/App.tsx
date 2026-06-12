@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "./utils/api";
+import { User, Customer, Lead, LeadStatus } from "./types";
 
 // Components
 import Header from "./components/Header";
@@ -11,26 +12,26 @@ import Reports from "./components/Dashboard/Reports";
 import CustomerModal from "./components/Modals/CustomerModal";
 import LeadModal from "./components/Modals/LeadModal";
 
-const App = () => {
+const App: React.FC = () => {
   // Auth states
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [user, setUser] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isRegistering, setIsRegistering] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
 
   // Data
-  const [customers, setCustomers] = useState([]);
-  const [leads, setLeads] = useState([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
 
   // UI states
-  const [activeTab, setActiveTab] = useState("customers");
-  const [customerSearchQuery, setCustomerSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState("All");
+  const [activeTab, setActiveTab] = useState<string>("customers");
+  const [customerSearchQuery, setCustomerSearchQuery] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<LeadStatus | "All">("All");
 
   // Modals
-  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
-  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
-  const [currentCustomer, setCurrentCustomer] = useState(null);
-  const [currentLead, setCurrentLead] = useState(null);
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState<boolean>(false);
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState<boolean>(false);
+  const [currentCustomer, setCurrentCustomer] = useState<Customer | null>(null);
+  const [currentLead, setCurrentLead] = useState<Lead | null>(null);
 
   // Axios interceptor for JWT
   useEffect(() => {
@@ -41,7 +42,7 @@ const App = () => {
     }
   }, []);
 
-  const fetchUser = async (token) => {
+  const fetchUser = async (token: string) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/auth/profile`);
       if (res.status === 200) {
@@ -76,15 +77,15 @@ const App = () => {
     }
   }, [customerSearchQuery, isLoggedIn]);
 
-  const handleAuthSubmit = async (e) => {
+  const handleAuthSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.target;
-    const email = form.email.value;
-    const password = form.password.value;
+    const form = e.target as HTMLFormElement;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
     const url = isRegistering ? `${API_BASE_URL}/auth/register` : `${API_BASE_URL}/auth/login`;
-    const body = { email, password };
+    const body: Record<string, string> = { email, password };
     if (isRegistering) {
-      body.name = form.name.value;
+      body.name = (form.elements.namedItem("name") as HTMLInputElement).value;
     }
 
     try {
@@ -94,13 +95,12 @@ const App = () => {
         localStorage.setItem("crmToken", data.token);
         axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
         setIsLoggedIn(true);
-        // Assuming the login/register response includes the user object
         setUser(data.user);
         fetchData();
       } else {
         window.alert(res.data.message);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Auth error", error);
       window.alert(error.response?.data?.message || "Authentication failed. Try again.");
     }
@@ -114,20 +114,20 @@ const App = () => {
   };
 
   // Customer actions
-  const openCustomerModal = (customer = null) => {
+  const openCustomerModal = (customer: Customer | null = null) => {
     setCurrentCustomer(customer);
     setIsCustomerModalOpen(true);
   };
   const closeCustomerModal = () => setIsCustomerModalOpen(false);
 
-  const handleCustomerSubmit = async (e) => {
+  const handleCustomerSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.target;
+    const form = e.target as HTMLFormElement;
     const customer = {
-      name: form.name.value,
-      email: form.email.value,
-      phone: form.phone.value,
-      company: form.company.value,
+      name: (form.elements.namedItem("name") as HTMLInputElement).value,
+      email: (form.elements.namedItem("email") as HTMLInputElement).value,
+      phone: (form.elements.namedItem("phone") as HTMLInputElement).value,
+      company: (form.elements.namedItem("company") as HTMLInputElement).value,
     };
     const isEditing = currentCustomer !== null;
     const url = isEditing
@@ -139,37 +139,37 @@ const App = () => {
       await axios({ method, url, data: customer });
       closeCustomerModal();
       fetchData();
-    } catch (err) {
+    } catch (err: any) {
       window.alert(err.response?.data?.message || "Failed to save customer. Please try again.");
     }
   };
 
-  const deleteCustomer = async (id) => {
+  const deleteCustomer = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this customer?")) return;
     try {
       await axios.delete(`${API_BASE_URL}/customers/${id}`);
       fetchData();
-    } catch (err) {
+    } catch (err: any) {
       window.alert(err.response?.data?.message || "Failed to delete customer. Please try again.");
     }
   };
 
   // Lead actions
-  const openLeadModal = (lead = null) => {
+  const openLeadModal = (lead: Lead | null = null) => {
     setCurrentLead(lead);
     setIsLeadModalOpen(true);
   };
   const closeLeadModal = () => setIsLeadModalOpen(false);
 
-  const handleLeadSubmit = async (e) => {
+  const handleLeadSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.target;
+    const form = e.target as HTMLFormElement;
     const lead = {
-      customerId: form.customer.value,
-      title: form.title.value,
-      description: form.description.value,
-      status: form.status.value,
-      value: parseFloat(form.value.value),
+      customerId: (form.elements.namedItem("customer") as HTMLSelectElement).value,
+      title: (form.elements.namedItem("title") as HTMLInputElement).value,
+      description: (form.elements.namedItem("description") as HTMLTextAreaElement).value,
+      status: (form.elements.namedItem("status") as HTMLSelectElement).value,
+      value: parseFloat((form.elements.namedItem("value") as HTMLInputElement).value),
     };
     const isEditing = currentLead !== null;
     const url = isEditing
@@ -181,21 +181,21 @@ const App = () => {
       await axios({ method, url, data: lead });
       closeLeadModal();
       fetchData();
-    } catch (err) {
+    } catch (err: any) {
       window.alert(err.response?.data?.message || "Failed to save lead. Please try again.");
     }
   };
 
-  const deleteLead = async (id) => {
+  const deleteLead = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this lead?")) return;
     try {
       await axios.delete(`${API_BASE_URL}/leads/${id}`);
       fetchData();
-    } catch (err) {
+    } catch (err: any) {
       window.alert(err.response?.data?.message || "Failed to delete lead. Please try again.");
     }
   };
-  
+
   const filteredLeads = leads.filter(lead => {
     if (filterStatus === 'All') {
       return true;

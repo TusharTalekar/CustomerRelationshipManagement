@@ -1,15 +1,19 @@
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const User = require("./models/User");
-const Customer = require("./models/Customer");
-const Lead = require("./models/Lead");
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import User from './models/User';
+import Customer from './models/Customer';
+import Lead from './models/Lead';
 
 dotenv.config();
 
 // Connect to MongoDB
-const connectDB = async () => {
+const connectDB = async (): Promise<void> => {
     try {
-        await mongoose.connect(process.env.MONGO_URI);
+        const mongoURI = process.env.MONGO_URI;
+        if (!mongoURI) {
+            throw new Error("MONGO_URI environment variable is not defined");
+        }
+        await mongoose.connect(mongoURI);
         console.log("MongoDB connected successfully!");
     } catch (err) {
         console.error("MongoDB connection failed! Error:", err);
@@ -18,14 +22,14 @@ const connectDB = async () => {
 }
 
 // Function to seed data
-const seedData = async () => {
+const seedData = async (): Promise<void> => {
     await connectDB();
     try {
         // Clear existing data
         console.log("Clearing existing data...");
-        await User.deleteMany();
-        await Customer.deleteMany();
-        await Lead.deleteMany();
+        await User.deleteMany({});
+        await Customer.deleteMany({});
+        await Lead.deleteMany({});
         console.log("Existing data cleared.");
 
         // Create a default admin user
@@ -73,35 +77,35 @@ const seedData = async () => {
                 customerId: customers[0]._id, // Lead for Alpha Corp
                 title: "Large Software Contract",
                 description: "Proposal for a multi-year software development project.",
-                status: "New",
+                status: "New" as const,
                 value: 50000
             },
             {
                 customerId: customers[0]._id, // Another lead for Alpha Corp
                 title: "Database Migration Project",
                 description: "Migrating existing databases to the cloud.",
-                status: "Contacted",
+                status: "Contacted" as const,
                 value: 25000
             },
             {
                 customerId: customers[1]._id, // Lead for Beta Solutions
                 title: "Hardware Upgrade Quote",
                 description: "Quotation for new server hardware and installation services.",
-                status: "Converted",
+                status: "Converted" as const,
                 value: 15000
             },
             {
                 customerId: customers[2]._id, // Lead for Gamma Innovations
                 title: "Marketing Strategy Consultation",
                 description: "Developing a comprehensive digital marketing plan.",
-                status: "New",
+                status: "New" as const,
                 value: 8000
             },
             {
                 customerId: customers[2]._id, // Another lead for Gamma Innovations
                 title: "Product Launch Support",
                 description: "Assistance with upcoming product launch campaign.",
-                status: "Lost",
+                status: "Lost" as const,
                 value: 12000
             }
         ];

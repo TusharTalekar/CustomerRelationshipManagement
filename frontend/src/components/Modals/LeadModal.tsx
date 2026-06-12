@@ -1,6 +1,14 @@
 import React from "react";
+import { Lead, Customer } from "../../types";
 
-const LeadModal = ({
+interface LeadModalProps {
+  currentLead: Lead | null;
+  customers: Customer[];
+  handleLeadSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  closeLeadModal: () => void;
+}
+
+const LeadModal: React.FC<LeadModalProps> = ({
   currentLead,
   customers,
   handleLeadSubmit,
@@ -21,7 +29,11 @@ const LeadModal = ({
               name="customer"
               className="w-full p-3 rounded-lg border border-gray-300 bg-gray-50 text-base mt-1"
               required
-              defaultValue={currentLead?.customerId}
+              defaultValue={
+                typeof currentLead?.customerId === 'object' && currentLead?.customerId
+                  ? currentLead.customerId._id
+                  : currentLead?.customerId
+              }
             >
               {customers.map((c) => (
                 <option key={c._id} value={c._id}>

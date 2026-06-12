@@ -1,6 +1,12 @@
 import React from "react";
 
-const AuthForm = ({ isRegistering, setIsRegistering, handleAuthSubmit }) => {
+interface AuthFormProps {
+  isRegistering: boolean;
+  setIsRegistering: (val: boolean) => void;
+  handleAuthSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+}
+
+const AuthForm: React.FC<AuthFormProps> = ({ isRegistering, setIsRegistering, handleAuthSubmit }) => {
   return (
     <div className="card w-full max-w-md mx-auto bg-white p-8 rounded-xl shadow-md">
       <h2 className="text-2xl font-semibold text-center mb-6">

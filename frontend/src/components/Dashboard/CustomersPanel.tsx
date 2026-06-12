@@ -1,6 +1,15 @@
 import React from "react";
+import { Customer } from "../../types";
 
-const CustomersPanel = ({
+interface CustomersPanelProps {
+  customers: Customer[];
+  openCustomerModal: (customer?: Customer) => void;
+  deleteCustomer: (id: string) => void;
+  customerSearchQuery: string;
+  handleCustomerSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const CustomersPanel: React.FC<CustomersPanelProps> = ({
   customers,
   openCustomerModal,
   deleteCustomer,

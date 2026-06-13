@@ -7,6 +7,10 @@ interface CustomersPanelProps {
   deleteCustomer: (id: string) => void;
   customerSearchQuery: string;
   handleCustomerSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  customerFilterType: string;
+  setCustomerFilterType: (type: string) => void;
+  customerSortBy: string;
+  setCustomerSortBy: (sort: string) => void;
 }
 
 const CustomersPanel: React.FC<CustomersPanelProps> = ({
@@ -15,6 +19,10 @@ const CustomersPanel: React.FC<CustomersPanelProps> = ({
   deleteCustomer,
   customerSearchQuery,
   handleCustomerSearch,
+  customerFilterType,
+  setCustomerFilterType,
+  customerSortBy,
+  setCustomerSortBy,
 }) => {
   return (
     <div className="bg-white p-8 rounded-xl shadow-md">
@@ -28,7 +36,8 @@ const CustomersPanel: React.FC<CustomersPanelProps> = ({
         </button>
       </div>
 
-      <div className="mb-4">
+      {/* Search, Filter, and Sort Controls */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <input
           type="text"
           placeholder="Search customers by name, email, or company..."
@@ -36,6 +45,26 @@ const CustomersPanel: React.FC<CustomersPanelProps> = ({
           onChange={handleCustomerSearch}
           className="w-full p-3 rounded-lg border border-gray-300 bg-gray-50 text-base"
         />
+
+        <select
+          value={customerFilterType}
+          onChange={(e) => setCustomerFilterType(e.target.value)}
+          className="w-full p-3 rounded-lg border border-gray-300 bg-gray-50 text-base"
+        >
+          <option value="All">All Types</option>
+          <option value="Company">Companies Only</option>
+          <option value="Individual">Individuals Only</option>
+        </select>
+
+        <select
+          value={customerSortBy}
+          onChange={(e) => setCustomerSortBy(e.target.value)}
+          className="w-full p-3 rounded-lg border border-gray-300 bg-gray-50 text-base"
+        >
+          <option value="none">Default Order</option>
+          <option value="asc">Name (A - Z)</option>
+          <option value="desc">Name (Z - A)</option>
+        </select>
       </div>
 
       <div className="overflow-x-auto">

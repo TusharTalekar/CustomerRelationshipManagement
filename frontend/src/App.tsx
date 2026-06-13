@@ -14,6 +14,9 @@ import LeadModal from "./components/Modals/LeadModal";
 
 const App: React.FC = () => {
 
+  const [customerFilterType, setCustomerFilterType] = useState<string>("All"); // "All" | "Company" | "Individual"
+  const [customerSortBy, setCustomerSortBy] = useState<string>("none"); // "none" | "asc" | "desc"
+
   const [reportCustomerFilter, setReportCustomerFilter] = useState<string>("All");
 
   const [leadSearchQuery, setLeadSearchQuery] = useState<string>("");
@@ -38,6 +41,34 @@ const App: React.FC = () => {
   const [isLeadModalOpen, setIsLeadModalOpen] = useState<boolean>(false);
   const [currentCustomer, setCurrentCustomer] = useState<Customer | null>(null);
   const [currentLead, setCurrentLead] = useState<Lead | null>(null);
+
+  const filteredAndSortedCustomers = customers
+    .filter((c) => {
+      // 1. Text Search Filter
+      const matchesSearch = [c.name, c.email, c.company].some((field) =>
+        field?.toLowerCase().includes(customerSearchQuery.toLowerCase())
+      );
+
+      // 2. Customer Type Filter (Company vs Individual)
+      if (customerFilterType === "Company") {
+        return matchesSearch && !!c.company;
+      }
+      if (customerFilterType === "Individual") {
+        return matchesSearch && !c.company;
+      }
+
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      // 3. Alphabetical Sorting
+      if (customerSortBy === "asc") {
+        return a.name.localeCompare(b.name);
+      }
+      if (customerSortBy === "desc") {
+        return b.name.localeCompare(a.name);
+      }
+      return 0; // default order
+    });
 
   // Axios interceptor for JWT
   useEffect(() => {
@@ -260,15 +291,15 @@ const App: React.FC = () => {
 
             {activeTab === "customers" && (
               <CustomersPanel
-                customers={customers.filter((c) =>
-                  [c.name, c.email, c.company].some((field) =>
-                    field?.toLowerCase().includes(customerSearchQuery.toLowerCase())
-                  )
-                )}
+                customers={filteredAndSortedCustomers}
                 openCustomerModal={openCustomerModal}
                 deleteCustomer={deleteCustomer}
                 customerSearchQuery={customerSearchQuery}
                 handleCustomerSearch={(e) => setCustomerSearchQuery(e.target.value)}
+                customerFilterType={customerFilterType}
+                setCustomerFilterType={setCustomerFilterType}
+                customerSortBy={customerSortBy}
+                setCustomerSortBy={setCustomerSortBy}
               />
             )}
             {activeTab === "leads" && (

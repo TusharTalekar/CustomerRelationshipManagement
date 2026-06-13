@@ -13,6 +13,10 @@ import CustomerModal from "./components/Modals/CustomerModal";
 import LeadModal from "./components/Modals/LeadModal";
 
 const App: React.FC = () => {
+
+  const [leadSearchQuery, setLeadSearchQuery] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("latest"); // "latest" | "oldest"
+
   // Auth states
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
@@ -196,12 +200,27 @@ const App: React.FC = () => {
     }
   };
 
-  const filteredLeads = leads.filter(lead => {
-    if (filterStatus === 'All') {
-      return true;
-    }
-    return lead.status === filterStatus;
-  });
+  const filteredLeads = leads
+    .filter((lead) => {
+      // 1. Filter by status
+      const matchesStatus = filterStatus === "All" || lead.status === filterStatus;
+
+      // 2. Search by lead title or customer name
+      const targetId = typeof lead.customerId === "object" && lead.customerId ? lead.customerId._id : lead.customerId;
+      const customer = customers.find((c) => c._id === targetId);
+
+      const matchesSearch =
+        lead.title.toLowerCase().includes(leadSearchQuery.toLowerCase()) ||
+        (customer?.name || "").toLowerCase().includes(leadSearchQuery.toLowerCase());
+
+      return matchesStatus && matchesSearch;
+    })
+    .sort((a, b) => {
+      // 3. Sort by latest or oldest leads
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return sortBy === "latest" ? dateB - dateA : dateA - dateB;
+    });
 
   return (
     <div className="min-h-screen bg-gray-100 font-inter">
@@ -258,6 +277,10 @@ const App: React.FC = () => {
                 setFilterStatus={setFilterStatus}
                 openLeadModal={openLeadModal}
                 deleteLead={deleteLead}
+                leadSearchQuery={leadSearchQuery}
+                setLeadSearchQuery={setLeadSearchQuery}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
               />
             )}
             {activeTab === "reports" && <Reports leads={leads} />}

@@ -8,6 +8,10 @@ interface LeadsPanelProps {
   setFilterStatus: (status: LeadStatus | 'All') => void;
   openLeadModal: (lead?: Lead) => void;
   deleteLead: (id: string) => void;
+  leadSearchQuery: string;
+  setLeadSearchQuery: (query: string) => void;
+  sortBy: string;
+  setSortBy: (sort: string) => void;
 }
 
 const LeadsPanel: React.FC<LeadsPanelProps> = ({
@@ -17,35 +21,52 @@ const LeadsPanel: React.FC<LeadsPanelProps> = ({
   setFilterStatus,
   openLeadModal,
   deleteLead,
+  leadSearchQuery,
+  setLeadSearchQuery,
+  sortBy,
+  setSortBy,
 }) => {
-  const filteredLeads =
-    filterStatus === "All"
-      ? leads
-      : leads.filter((lead) => lead.status === filterStatus);
-
   return (
     <div className="bg-white p-8 rounded-xl shadow-md">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-2xl font-semibold">Leads</h3>
-        <div className="flex items-center space-x-2">
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as LeadStatus | 'All')}
-            className="w-full p-3 rounded-lg border border-gray-300 bg-gray-50 text-base"
-          >
-            <option value="All">All Statuses</option>
-            <option value="New">New</option>
-            <option value="Contacted">Contacted</option>
-            <option value="Converted">Converted</option>
-            <option value="Lost">Lost</option>
-          </select>
-          <button
-            onClick={() => openLeadModal()}
-            className="p-3 rounded-lg font-semibold text-white bg-violet-700 hover:bg-violet-800 transition-colors"
-          >
-            Add Lead
-          </button>
-        </div>
+        <button
+          onClick={() => openLeadModal()}
+          className="p-3 rounded-lg font-semibold text-white bg-violet-700 hover:bg-violet-800 transition-colors"
+        >
+          Add Lead
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <input
+          type="text"
+          placeholder="Search leads by title or customer..."
+          value={leadSearchQuery}
+          onChange={(e) => setLeadSearchQuery(e.target.value)}
+          className="w-full p-3 rounded-lg border border-gray-300 bg-gray-50 text-base"
+        />
+
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value as LeadStatus | 'All')}
+          className="w-full p-3 rounded-lg border border-gray-300 bg-gray-50 text-base"
+        >
+          <option value="All">All Statuses</option>
+          <option value="New">New</option>
+          <option value="Contacted">Contacted</option>
+          <option value="Converted">Converted</option>
+          <option value="Lost">Lost</option>
+        </select>
+
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="w-full p-3 rounded-lg border border-gray-300 bg-gray-50 text-base"
+        >
+          <option value="latest">Latest Leads</option>
+          <option value="oldest">Oldest Leads</option>
+        </select>
       </div>
 
       <div className="overflow-x-auto">
@@ -67,9 +88,9 @@ const LeadsPanel: React.FC<LeadsPanelProps> = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredLeads.map((lead) => {
-              const targetId = typeof lead.customerId === 'object' && lead.customerId 
-                ? lead.customerId._id 
+            {leads.map((lead) => {
+              const targetId = typeof lead.customerId === 'object' && lead.customerId
+                ? lead.customerId._id
                 : lead.customerId;
               const customer = customers.find((c) => c._id === targetId);
               return (
@@ -80,15 +101,14 @@ const LeadsPanel: React.FC<LeadsPanelProps> = ({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        lead.status === "New"
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${lead.status === "New"
                           ? "bg-blue-100 text-blue-800"
                           : lead.status === "Contacted"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : lead.status === "Converted"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
+                            ? "bg-yellow-100 text-yellow-800"
+                            : lead.status === "Converted"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                        }`}
                     >
                       {lead.status}
                     </span>

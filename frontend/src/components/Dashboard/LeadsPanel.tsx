@@ -102,12 +102,12 @@ const LeadsPanel: React.FC<LeadsPanelProps> = ({
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${lead.status === "New"
-                          ? "bg-blue-100 text-blue-800"
-                          : lead.status === "Contacted"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : lead.status === "Converted"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
+                        ? "bg-blue-100 text-blue-800"
+                        : lead.status === "Contacted"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : lead.status === "Converted"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
                         }`}
                     >
                       {lead.status}

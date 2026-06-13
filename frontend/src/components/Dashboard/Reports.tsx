@@ -44,7 +44,12 @@ const Reports: React.FC<ReportsProps> = ({
     value: statusCounts[status],
   }));
 
-  const COLORS = ["#4c51bf", "#48bb78", "#ecc94b", "#f56565"];
+  const STATUS_COLORS: Record<string, string> = {
+    New: "#4c51bf",
+    Contacted: "#48bb78",
+    Converted: "#ecc94b",
+    Lost: "#f56565",
+  };
 
   return (
     <div className="bg-white p-8 rounded-xl shadow-md">
@@ -89,7 +94,7 @@ const Reports: React.FC<ReportsProps> = ({
                 {pieChartData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
+                    fill={STATUS_COLORS[entry.name] || "#8884d8"}
                   />
                 ))}
               </Pie>

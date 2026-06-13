@@ -14,6 +14,8 @@ import LeadModal from "./components/Modals/LeadModal";
 
 const App: React.FC = () => {
 
+  const [reportCustomerFilter, setReportCustomerFilter] = useState<string>("All");
+
   const [leadSearchQuery, setLeadSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("latest"); // "latest" | "oldest"
 
@@ -283,7 +285,15 @@ const App: React.FC = () => {
                 setSortBy={setSortBy}
               />
             )}
-            {activeTab === "reports" && <Reports leads={leads} />}
+            {activeTab === "reports" &&
+              <Reports
+                leads={leads}
+                customers={customers}
+                reportCustomerFilter={reportCustomerFilter}
+                setReportCustomerFilter={setReportCustomerFilter}
+              />
+            }
+
           </>
         )}
       </main>

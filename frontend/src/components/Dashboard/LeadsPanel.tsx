@@ -1,5 +1,5 @@
 import React from "react";
-import { Lead, Customer, LeadStatus } from "../../types";
+import { Lead, Customer, LeadStatus, User } from "../../types";
 
 interface LeadsPanelProps {
   leads: Lead[];
@@ -12,6 +12,7 @@ interface LeadsPanelProps {
   setLeadSearchQuery: (query: string) => void;
   sortBy: string;
   setSortBy: (sort: string) => void;
+  user: User | null;
 }
 
 const LeadsPanel: React.FC<LeadsPanelProps> = ({
@@ -25,17 +26,23 @@ const LeadsPanel: React.FC<LeadsPanelProps> = ({
   setLeadSearchQuery,
   sortBy,
   setSortBy,
+  user,
 }) => {
+  // Only admin, manager, and user roles can mutate lead records
+  const canModify = user && ['admin', 'manager', 'user'].includes(user.role);
+
   return (
     <div className="bg-white p-8 rounded-xl shadow-md">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-2xl font-semibold">Leads</h3>
-        <button
-          onClick={() => openLeadModal()}
-          className="p-3 rounded-lg font-semibold text-white bg-violet-700 hover:bg-violet-800 transition-colors"
-        >
-          Add Lead
-        </button>
+        {canModify && (
+          <button
+            onClick={() => openLeadModal()}
+            className="p-3 rounded-lg font-semibold text-white bg-violet-700 hover:bg-violet-800 transition-colors"
+          >
+            Add Lead
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -63,7 +70,7 @@ const LeadsPanel: React.FC<LeadsPanelProps> = ({
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
           className="w-full p-3 rounded-lg border border-gray-300 bg-gray-50 text-base"
-        >
+         >
           <option value="latest">Latest Leads</option>
           <option value="oldest">Oldest Leads</option>
         </select>
@@ -114,18 +121,24 @@ const LeadsPanel: React.FC<LeadsPanelProps> = ({
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => openLeadModal(lead)}
-                      className="text-indigo-600 hover:text-indigo-900 mr-2"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => deleteLead(lead._id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
+                    {canModify ? (
+                      <>
+                        <button
+                          onClick={() => openLeadModal(lead)}
+                          className="text-indigo-600 hover:text-indigo-900 mr-2"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteLead(lead._id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-gray-400 text-xs italic">View Only</span>
+                    )}
                   </td>
                 </tr>
               );

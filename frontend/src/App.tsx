@@ -182,6 +182,10 @@ const App: React.FC = () => {
   };
 
   const deleteCustomer = async (id: string) => {
+    if (!user || user.role !== "admin") {
+      window.alert("Action forbidden: Only administrators can delete customers.");
+      return;
+    }
     if (!window.confirm("Are you sure you want to delete this customer?")) return;
     try {
       await axios.delete(`${API_BASE_URL}/customers/${id}`);
@@ -300,6 +304,7 @@ const App: React.FC = () => {
                 setCustomerFilterType={setCustomerFilterType}
                 customerSortBy={customerSortBy}
                 setCustomerSortBy={setCustomerSortBy}
+                user={user}
               />
             )}
             {activeTab === "leads" && (
@@ -314,6 +319,7 @@ const App: React.FC = () => {
                 setLeadSearchQuery={setLeadSearchQuery}
                 sortBy={sortBy}
                 setSortBy={setSortBy}
+                user={user}
               />
             )}
             {activeTab === "reports" &&

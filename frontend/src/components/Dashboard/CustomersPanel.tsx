@@ -1,5 +1,5 @@
 import React from "react";
-import { Customer } from "../../types";
+import { Customer, User } from "../../types";
 
 interface CustomersPanelProps {
   customers: Customer[];
@@ -11,6 +11,7 @@ interface CustomersPanelProps {
   setCustomerFilterType: (type: string) => void;
   customerSortBy: string;
   setCustomerSortBy: (sort: string) => void;
+  user: User | null;
 }
 
 const CustomersPanel: React.FC<CustomersPanelProps> = ({
@@ -23,17 +24,23 @@ const CustomersPanel: React.FC<CustomersPanelProps> = ({
   setCustomerFilterType,
   customerSortBy,
   setCustomerSortBy,
+  user,
 }) => {
+  const canModify = user && ['admin', 'manager', 'user'].includes(user.role);
+  const canDelete = user && user.role === 'admin';
+
   return (
     <div className="bg-white p-8 rounded-xl shadow-md">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-2xl font-semibold">Customers</h3>
-        <button
-          onClick={() => openCustomerModal()}
-          className="p-3 rounded-lg font-semibold text-white bg-violet-700 hover:bg-violet-800 transition-colors"
-        >
-          Add Customer
-        </button>
+        {canModify && (
+          <button
+            onClick={() => openCustomerModal()}
+            className="p-3 rounded-lg font-semibold text-white bg-violet-700 hover:bg-violet-800 transition-colors"
+          >
+            Add Customer
+          </button>
+        )}
       </div>
 
       {/* Search, Filter, and Sort Controls */}
@@ -90,18 +97,25 @@ const CustomersPanel: React.FC<CustomersPanelProps> = ({
                   {customer.company || "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => openCustomerModal(customer)}
-                    className="text-indigo-600 hover:text-indigo-900 mr-2"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => deleteCustomer(customer._id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Delete
-                  </button>
+                  {canModify && (
+                    <button
+                      onClick={() => openCustomerModal(customer)}
+                      className="text-indigo-600 hover:text-indigo-900 mr-2"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={() => deleteCustomer(customer._id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Delete
+                    </button>
+                  )}
+                  {!canModify && !canDelete && (
+                    <span className="text-gray-400 text-xs italic">View Only</span>
+                  )}
                 </td>
               </tr>
             ))}

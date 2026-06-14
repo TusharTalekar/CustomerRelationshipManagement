@@ -1,16 +1,16 @@
 import express, { Response } from "express";
 import Customer from "../models/Customer";
-import { protect, admin, RequestWithUser } from "../middlewares/authMiddleware";
+import { protect, authorizeRoles, RequestWithUser } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 
-// @ route POST /api/customers
-// @ desc create a new customer 
-// @ access Private
-router.post("/", protect as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
+// @route  POST /api/customers
+// @desc   create a new customer 
+// @access Private (Admin, Manager, User)
+router.post("/", protect as express.RequestHandler, authorizeRoles('admin', 'manager', 'user') as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
         const { name, email, phone, company } = req.body;
-        
+
         if (!req.user) {
             res.status(401).json({ message: "Not authorized" });
             return;
@@ -32,14 +32,14 @@ router.post("/", protect as express.RequestHandler, async (req: RequestWithUser,
     }
 });
 
-// @ route GET /api/customers
-// @ desc get all customers for the logged-in user, or all for admin, with search functionality
-// @ access Private
-router.get("/", protect as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
+// @route  GET /api/customers
+// @desc   get customers based on roles with search functionality
+// @access Private (All Roles)
+router.get("/", protect as express.RequestHandler, authorizeRoles('admin', 'manager', 'user', 'support') as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
         const query = req.query.query as string | undefined;
         let customers;
-        
+
         if (!req.user) {
             res.status(401).json({ message: "Not authorized" });
             return;
@@ -53,9 +53,11 @@ router.get("/", protect as express.RequestHandler, async (req: RequestWithUser, 
             ]
         } : {};
 
-        if (req.user.role === 'admin') {
+        // Admin, Manager, and Support can view all records globally
+        if (['admin', 'manager', 'support'].includes(req.user.role)) {
             customers = await Customer.find(searchCondition);
         } else {
+            // Regular users only see their own records
             customers = await Customer.find({
                 ownerId: req.user._id,
                 ...searchCondition
@@ -68,10 +70,10 @@ router.get("/", protect as express.RequestHandler, async (req: RequestWithUser, 
     }
 });
 
-// @ route GET /api/customers/:id
-// @ desc get a single customer by id
-// @ access Private
-router.get("/:id", protect as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
+// @route  GET /api/customers/:id
+// @desc   get a single customer by id
+// @access Private (All Roles with ownership check for user)
+router.get("/:id", protect as express.RequestHandler, authorizeRoles('admin', 'manager', 'user', 'support') as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
         const customer = await Customer.findById(req.params.id);
 
@@ -85,8 +87,8 @@ router.get("/:id", protect as express.RequestHandler, async (req: RequestWithUse
             return;
         }
 
-        // Check if the logged-in user is the owner OR is an admin
-        if (customer.ownerId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        // Standard user must be the owner. Admin, Manager, and Support skip this check.
+        if (req.user.role === 'user' && customer.ownerId.toString() !== req.user._id.toString()) {
             res.status(403).json({ message: "Not authorized to view this customer" });
             return;
         }
@@ -98,10 +100,10 @@ router.get("/:id", protect as express.RequestHandler, async (req: RequestWithUse
     }
 });
 
-// @ route PUT /api/customers/:id
-// @ desc update a customer by id
-// @ access Private
-router.put("/:id", protect as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
+// @route  PUT /api/customers/:id
+// @desc   update a customer by id
+// @access Private (Admin, Manager, User owner)
+router.put("/:id", protect as express.RequestHandler, authorizeRoles('admin', 'manager', 'user') as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
         const customer = await Customer.findById(req.params.id);
 
@@ -115,8 +117,8 @@ router.put("/:id", protect as express.RequestHandler, async (req: RequestWithUse
             return;
         }
 
-        // Check if the logged-in user is the owner OR is an admin
-        if (customer.ownerId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        // User must be the owner. Admin and Manager can update any record.
+        if (req.user.role === 'user' && customer.ownerId.toString() !== req.user._id.toString()) {
             res.status(403).json({ message: "Not authorized to update this customer" });
             return;
         }
@@ -133,11 +135,16 @@ router.put("/:id", protect as express.RequestHandler, async (req: RequestWithUse
     }
 });
 
-// @ route DELETE /api/customers/:id
-// @ desc delete a customer by id (Admin Only)
-// @ access Private
-router.delete("/:id", [protect as express.RequestHandler, admin as express.RequestHandler], async (req: RequestWithUser, res: Response): Promise<void> => {
+// @route  DELETE /api/customers/:id
+// @desc   delete a customer by id (Admin Only)
+// @access Private (Admin Only)
+router.delete("/:id", protect as express.RequestHandler, authorizeRoles('admin') as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
+        if (!req.user) {
+            res.status(401).json({ message: "Not authorized" });
+            return;
+        }
+
         const customer = await Customer.findById(req.params.id);
 
         if (!customer) {

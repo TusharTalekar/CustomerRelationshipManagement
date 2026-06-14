@@ -1,17 +1,17 @@
 import express, { Response } from "express";
 import Lead from "../models/Lead";
 import Customer, { ICustomerDocument } from "../models/Customer";
-import { protect, RequestWithUser } from "../middlewares/authMiddleware";
+import { protect, authorizeRoles, RequestWithUser } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 
-// @ route POST /api/leads/:customerId
-// @ desc create a new lead for a specific customer
-// @ access Private
-router.post("/:customerId", protect as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
+// @route  POST /api/leads/:customerId
+// @desc   create a new lead for a specific customer
+// @access Private (Admin, Manager, User)
+router.post("/:customerId", protect as express.RequestHandler, authorizeRoles('admin', 'manager', 'user') as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
         const customer = await Customer.findById(req.params.customerId);
-        
+
         if (!req.user) {
             res.status(401).json({ message: "Not authorized" });
             return;
@@ -21,7 +21,9 @@ router.post("/:customerId", protect as express.RequestHandler, async (req: Reque
             res.status(404).json({ message: "Customer not found" });
             return;
         }
-        if (customer.ownerId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+
+        // Check ownership: standard users must own the customer record. Admin & Manager bypass.
+        if (req.user.role === 'user' && customer.ownerId.toString() !== req.user._id.toString()) {
             res.status(403).json({ message: "Not authorized to add leads for this customer" });
             return;
         }
@@ -39,21 +41,23 @@ router.post("/:customerId", protect as express.RequestHandler, async (req: Reque
     }
 });
 
-// @ route GET /api/leads
-// @ desc get all leads for the logged-in user's customers, or all for admin
-// @ access Private
-router.get("/", protect as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
+// @route  GET /api/leads
+// @desc   get all leads based on roles
+// @access Private (All Roles)
+router.get("/", protect as express.RequestHandler, authorizeRoles('admin', 'manager', 'user', 'support') as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
         let leads;
-        
+
         if (!req.user) {
             res.status(401).json({ message: "Not authorized" });
             return;
         }
 
-        if (req.user.role === 'admin') {
+        // Admin, Manager, and Support can view all leads across the system
+        if (['admin', 'manager', 'support'].includes(req.user.role)) {
             leads = await Lead.find({}).populate('customerId');
         } else {
+            // Standard users only find leads linked to their owned customers
             const customers = await Customer.find({ ownerId: req.user._id });
             const customerIds = customers.map(customer => customer._id);
             leads = await Lead.find({ customerId: { $in: customerIds } });
@@ -65,10 +69,10 @@ router.get("/", protect as express.RequestHandler, async (req: RequestWithUser, 
     }
 });
 
-// @ route PUT /api/leads/:id
-// @ desc update a lead by id
-// @ access Private
-router.put("/:id", protect as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
+// @route  PUT /api/leads/:id
+// @desc   update a lead by id
+// @access Private (Admin, Manager, User owner)
+router.put("/:id", protect as express.RequestHandler, authorizeRoles('admin', 'manager', 'user') as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
         const lead = await Lead.findById(req.params.id).populate('customerId');
 
@@ -81,11 +85,15 @@ router.put("/:id", protect as express.RequestHandler, async (req: RequestWithUse
             res.status(404).json({ message: "Lead not found" });
             return;
         }
-        
+
         const customer = lead.customerId as unknown as ICustomerDocument;
-        if (!customer || (customer.ownerId.toString() !== req.user._id.toString() && req.user.role !== 'admin')) {
-            res.status(403).json({ message: "Not authorized to update this lead" });
-            return;
+
+        // Ownership validation for standard user
+        if (req.user.role === 'user') {
+            if (!customer || customer.ownerId.toString() !== req.user._id.toString()) {
+                res.status(403).json({ message: "Not authorized to update this lead" });
+                return;
+            }
         }
 
         const updatedLead = await Lead.findByIdAndUpdate(
@@ -100,10 +108,10 @@ router.put("/:id", protect as express.RequestHandler, async (req: RequestWithUse
     }
 });
 
-// @ route DELETE /api/leads/:id
-// @ desc delete a lead by id
-// @ access Private
-router.delete("/:id", protect as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
+// @route  DELETE /api/leads/:id
+// @desc   delete a lead by id
+// @access Private (Admin, Manager, User owner)
+router.delete("/:id", protect as express.RequestHandler, authorizeRoles('admin', 'manager', 'user') as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
     try {
         const lead = await Lead.findById(req.params.id).populate('customerId');
 
@@ -116,11 +124,15 @@ router.delete("/:id", protect as express.RequestHandler, async (req: RequestWith
             res.status(404).json({ message: "Lead not found" });
             return;
         }
-        
+
         const customer = lead.customerId as unknown as ICustomerDocument;
-        if (!customer || (customer.ownerId.toString() !== req.user._id.toString() && req.user.role !== 'admin')) {
-            res.status(403).json({ message: "Not authorized to delete this lead" });
-            return;
+
+        // Ownership validation for standard user
+        if (req.user.role === 'user') {
+            if (!customer || customer.ownerId.toString() !== req.user._id.toString()) {
+                res.status(403).json({ message: "Not authorized to delete this lead" });
+                return;
+            }
         }
 
         await lead.deleteOne();

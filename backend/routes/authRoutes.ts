@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import User from '../models/User';
 import jwt from 'jsonwebtoken';
-import { protect, RequestWithUser } from '../middlewares/authMiddleware';
+import { protect, RequestWithUser, authorizeRoles } from '../middlewares/authMiddleware';
 import validate from '../middlewares/validationMiddleware';
 import { registerSchema, loginSchema } from '../validation/userValidation';
 
@@ -20,6 +20,7 @@ router.post("/register", validate(registerSchema, 'body'), async (req: Request, 
         user = new User({ name, email, password });
         await user.save();
 
+        // The payload dynamically passes the newly assigned role ('user', 'admin', 'manager', or 'support')
         const payload = { user: { id: user._id, role: user.role } };
         const jwtSecret = process.env.JWT_SECRET;
         if (!jwtSecret) {
@@ -70,6 +71,7 @@ router.post("/login", validate(loginSchema, 'body'), async (req: Request, res: R
             return;
         }
 
+        // The payload dynamically binds the existing database role into the encrypted token
         const payload = { user: { id: user._id, role: user.role } };
         const jwtSecret = process.env.JWT_SECRET;
         if (!jwtSecret) {
@@ -103,8 +105,22 @@ router.post("/login", validate(loginSchema, 'body'), async (req: Request, res: R
     }
 });
 
-router.get("/profile", protect as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
+router.get("/profile", protect, async (req: RequestWithUser, res: Response): Promise<void> => {
     res.json(req.user);
+});
+
+// @route   GET /api/auth/users
+// @desc    Get all system users for administrative reassignments
+// @access  Private (Admin and Manager Only)
+router.get("/users", protect, authorizeRoles("admin", "manager") as express.RequestHandler, async (req: RequestWithUser, res: Response): Promise<void> => {
+    try {
+        // Fetch all users, excluding their passwords for security
+        const users = await User.find({}).select("-password");
+        res.json(users);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server error");
+    }
 });
 
 export default router;

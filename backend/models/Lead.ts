@@ -4,17 +4,18 @@ import { ICustomerDocument } from './Customer';
 export type LeadStatus = 'New' | 'Contacted' | 'Converted' | 'Lost';
 
 export interface ILead {
-  customerId: mongoose.Types.ObjectId | string | ICustomerDocument;
-  title: string;
-  description?: string;
-  status: LeadStatus;
-  value: number;
-  createdAt?: Date;
-  updatedAt?: Date;
+    customerId: mongoose.Types.ObjectId | string | ICustomerDocument;
+    title: string;
+    description?: string;
+    status: LeadStatus;
+    value: number;
+    assignedTo: mongoose.Schema.Types.ObjectId;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 export interface ILeadDocument extends ILead, Document {
-  _id: mongoose.Types.ObjectId;
+    _id: mongoose.Types.ObjectId;
 }
 
 const leadSchema = new Schema<ILeadDocument>({
@@ -40,6 +41,10 @@ const leadSchema = new Schema<ILeadDocument>({
     value: {
         type: Number,
         default: 0
+    },
+    assignedTo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     },
     createdAt: {
         type: Date,

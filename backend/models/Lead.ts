@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { ICustomerDocument } from './Customer';
 
-export type LeadStatus = 'New' | 'Contacted' | 'Converted' | 'Lost';
+export type LeadStatus = 'New' | 'Contacted' | 'Interested' | 'Proposal Sent' | 'Won' | 'Lost';
 
 export interface ILead {
     customerId: mongoose.Types.ObjectId | string | ICustomerDocument;
@@ -35,7 +35,7 @@ const leadSchema = new Schema<ILeadDocument>({
     },
     status: {
         type: String,
-        enum: ['New', 'Contacted', 'Converted', 'Lost'],
+        enum: ['New', 'Contacted', 'Interested', 'Proposal Sent', 'Won', 'Lost'],
         default: 'New'
     },
     value: {

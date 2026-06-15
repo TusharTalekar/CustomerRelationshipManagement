@@ -75,7 +75,9 @@ const LeadModal: React.FC<LeadModalProps> = ({
             >
               <option value="New">New</option>
               <option value="Contacted">Contacted</option>
-              <option value="Converted">Converted</option>
+              <option value="Interested">Interested</option>
+              <option value="Proposal Sent">Proposal Sent</option>
+              <option value="Won">Won</option>
               <option value="Lost">Lost</option>
             </select>
           </div>

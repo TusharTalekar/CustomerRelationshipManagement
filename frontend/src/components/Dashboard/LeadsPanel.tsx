@@ -1,5 +1,5 @@
 import React from "react";
-import { Lead, Customer, LeadStatus, User } from "../../types";
+import { Lead, Customer, LeadStatus, User, LEAD_STATUS_COLORS } from "../../types";
 
 interface LeadsPanelProps {
   leads: Lead[];
@@ -62,7 +62,9 @@ const LeadsPanel: React.FC<LeadsPanelProps> = ({
           <option value="All">All Statuses</option>
           <option value="New">New</option>
           <option value="Contacted">Contacted</option>
-          <option value="Converted">Converted</option>
+          <option value="Interested">Interested</option>
+          <option value="Proposal Sent">Proposal Sent</option>
+          <option value="Won">Won</option>
           <option value="Lost">Lost</option>
         </select>
 
@@ -70,7 +72,7 @@ const LeadsPanel: React.FC<LeadsPanelProps> = ({
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
           className="w-full p-3 rounded-lg border border-gray-300 bg-gray-50 text-base"
-         >
+        >
           <option value="latest">Latest Leads</option>
           <option value="oldest">Oldest Leads</option>
         </select>
@@ -108,14 +110,9 @@ const LeadsPanel: React.FC<LeadsPanelProps> = ({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${lead.status === "New"
-                        ? "bg-blue-100 text-blue-800"
-                        : lead.status === "Contacted"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : lead.status === "Converted"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${LEAD_STATUS_COLORS[lead.status] || "bg-gray-100 text-gray-800"}`
+                      }
                     >
                       {lead.status}
                     </span>

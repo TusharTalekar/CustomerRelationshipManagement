@@ -7,7 +7,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Lead, Customer } from "../../types";
+import { Lead, Customer, LEAD_STATUS_HEX_COLORS } from "../../types";
 
 interface ReportsProps {
   leads: Lead[];
@@ -44,12 +44,7 @@ const Reports: React.FC<ReportsProps> = ({
     value: statusCounts[status],
   }));
 
-  const STATUS_COLORS: Record<string, string> = {
-    New: "#4c51bf",
-    Contacted: "#48bb78",
-    Converted: "#ecc94b",
-    Lost: "#f56565",
-  };
+  const STATUS_COLORS = LEAD_STATUS_HEX_COLORS;
 
   return (
     <div className="bg-white p-8 rounded-xl shadow-md">

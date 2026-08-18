@@ -340,6 +340,7 @@ const App: React.FC = () => {
           currentCustomer={currentCustomer}
           handleCustomerSubmit={handleCustomerSubmit}
           closeCustomerModal={closeCustomerModal}
+          currentUserId={user?._id}
         />
       )}
       {isLeadModalOpen && (
@@ -348,6 +349,7 @@ const App: React.FC = () => {
           customers={customers}
           handleLeadSubmit={handleLeadSubmit}
           closeLeadModal={closeLeadModal}
+          currentUserId={user?._id}
         />
       )}
     </div>

@@ -5,6 +5,7 @@ import cors from 'cors';
 import authRoutes from './routes/authRoutes';
 import customerRoutes from './routes/customerRoutes';
 import leadRoutes from './routes/leadRoutes';
+import noteRoutes from './routes/noteRoutes';
 
 
 const app = express();
@@ -24,5 +25,9 @@ app.use('/api/customers', customerRoutes);
 
 // Leads 
 app.use("/api/leads", leadRoutes);
+
+// Notes 
+app.use('/api/notes', noteRoutes);
+
 
 export default app;

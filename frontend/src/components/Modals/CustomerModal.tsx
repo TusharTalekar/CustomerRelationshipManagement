@@ -1,16 +1,19 @@
 import React from "react";
 import { Customer } from "../../types";
+import NotesSection from "../NotesSection";
 
 interface CustomerModalProps {
   currentCustomer: Customer | null;
   handleCustomerSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   closeCustomerModal: () => void;
+  currentUserId?: string;
 }
 
 const CustomerModal: React.FC<CustomerModalProps> = ({
   currentCustomer,
   handleCustomerSubmit,
   closeCustomerModal,
+  currentUserId
 }) => {
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50">
@@ -80,6 +83,12 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
             </button>
           </div>
         </form>
+        {currentCustomer && (
+          <NotesSection
+            customerId={currentCustomer._id}
+            currentUserId={currentUserId}
+          />
+        )}
       </div>
     </div>
   );

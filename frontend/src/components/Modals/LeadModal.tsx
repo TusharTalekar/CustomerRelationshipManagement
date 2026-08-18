@@ -1,11 +1,13 @@
 import React from "react";
 import { Lead, Customer } from "../../types";
+import NotesSection from "../NotesSection";
 
 interface LeadModalProps {
   currentLead: Lead | null;
   customers: Customer[];
   handleLeadSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   closeLeadModal: () => void;
+  currentUserId?: string;
 }
 
 const LeadModal: React.FC<LeadModalProps> = ({
@@ -13,6 +15,7 @@ const LeadModal: React.FC<LeadModalProps> = ({
   customers,
   handleLeadSubmit,
   closeLeadModal,
+  currentUserId
 }) => {
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50">
@@ -109,6 +112,12 @@ const LeadModal: React.FC<LeadModalProps> = ({
             </button>
           </div>
         </form>
+        {currentLead && (
+          <NotesSection
+            leadId={currentLead._id}
+            currentUserId={currentUserId}
+          />
+        )}
       </div>
     </div>
   );

@@ -31,6 +31,21 @@ export interface Lead {
   updatedAt?: string;
 }
 
+export interface Note {
+  _id: string;
+  content: string;
+  createdById: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  customerId?: string;
+  leadId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+
 export const LEAD_STATUS_COLORS: Record<LeadStatus, string> = {
   'New': 'bg-blue-100 text-blue-800',
   'Contacted': 'bg-yellow-100 text-yellow-800',
